@@ -1,0 +1,7 @@
+{
+  "extends": "./tsconfig",
+  "exclude": ["./tests/**/*", "jest.setup.ts"],
+  "compilerOptions": {
+    "strictNullChecks": true
+  }
+}

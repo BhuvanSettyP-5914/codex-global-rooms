@@ -1,0 +1,21 @@
+{
+  "compilerOptions": {
+    "target": "ESNext",
+    "skipLibCheck": true,
+    "allowSyntheticDefaultImports": true,
+    "noImplicitAny": true,
+    "esModuleInterop": true,
+    "module": "nodenext",
+    "moduleResolution": "nodenext",
+    "outDir": "./dist",
+    "rootDir": "../..",
+    "paths": {
+      "@/*": ["./src/*"],
+      "@codex/types/*": ["../../packages/types/*"]
+    },
+    "lib": ["ESNext"],
+    "types": ["jest"],
+    "strictNullChecks": true
+  },
+  "include": ["src/**/*", "tests/**/*", "jest.setup.ts"]
+}

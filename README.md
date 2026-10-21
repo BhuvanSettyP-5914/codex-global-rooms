@@ -1,0 +1,423 @@
+# CodeX - Code Collaboration Platform
+
+<div align="center">
+  <a href="https://codex.dulapahv.dev/">
+    <img src="apps/client/public/images/cover.png" width="630" alt="codex cover image"/>
+  </a>
+</div>
+
+<br />
+
+<div align="center">
+  <a href="https://github.com/dulapahv/CodeX/actions/workflows/ci.yml"><img src="https://github.com/dulapahv/CodeX/actions/workflows/ci.yml/badge.svg"></a>
+  <a href="https://github.com/dulapahv/CodeX/issues"><img src="https://img.shields.io/github/issues/dulapahv/CodeX.svg?style=flat" /></a>
+<!--   <a href="https://codeclimate.com/github/dulapahv/CodeX/maintainability"><img src="https://api.codeclimate.com/v1/badges/3984a19491b5e90cfa08/maintainability" /></a> -->
+</div>
+
+<br />
+
+**CodeX is an online code collaboration platform that enables real-time coding, cursor sharing, live UI preview, and video communication with integrated Git support—no sign-up required.**
+
+
+## Features
+
+- **Real-time Collaboration** - Code together in real-time with cursor sharing, highlighting, and follow mode
+- **Shared Terminal** - Execute code and see results together with over 80 supported languages
+- **Live Preview** - Preview UI changes instantly with loaded libraries like Tailwind CSS, and more
+- **GitHub Integrated** - Save your work and open files from your repositories
+- **Shared Notepad** - Take notes together in real-time with rich text and markdown support
+- **Video & Voice** - Communicate with your team using video and voice chat
+
+## Table of Contents
+
+- [Features](#features)
+- [Table of Contents](#table-of-contents)
+- [Project Structure](#project-structure)
+- [Prerequisites](#prerequisites)
+- [Getting Started](#getting-started)
+- [Development](#development)
+- [Test](#test)
+  - [Frontend Test](#frontend-test)
+  - [Backend Test](#backend-test)
+- [Build](#build)
+- [Deployment](#deployment)
+- [Scripts](#scripts)
+- [Tech Stack](#tech-stack)
+- [Coding Style](#coding-style)
+- [Contributing](#contributing)
+- [User Manual](#user-manual)
+- [License](#license)
+
+## Project Structure
+
+The project is organized as a [monorepo](https://en.wikipedia.org/wiki/Monorepo) using [Turborepo](https://turbo.build/repo/docs):
+
+```txt
+CodeX
+├── apps/                   # Application packages
+│   ├── client/             # Frontend Next.js application
+│   │   ├── public/         # Static assets
+│   │   ├── src/            # Source code
+│   │   │   ├── app/        # Next.js app router pages and API routes
+│   │   │   ├── components/ # React components
+│   │   │   ├── hooks/      # Custom React hooks
+│   │   │   └── lib/        # Utility functions and services
+│   │   └── tests/          # Frontend tests (Playwright)
+│   └── server/             # Backend Socket.IO server
+│       ├── src/            # Source code
+│       │   ├── service/    # Backend services
+│       │   └── utils/      # Utility functions
+│       └── tests/          # Backend tests (Jest)
+├── docs/                   # Documentation assets
+├── packages/               # Shared packages
+│   └── types/              # Shared TypeScript types and interfaces
+├── scripts/                # Build and maintenance scripts
+├── package.json            # Root package.json
+└── pnpm-workspace.yaml     # PNPM workspace configuration
+```
+
+## Prerequisites
+
+Before you begin, ensure you have the following installed:
+
+- [Node.js](https://nodejs.org/en/) (v22; required by the server dependencies)
+- [pnpm](https://pnpm.io) (v6 or higher)
+- [Docker Desktop](https://www.docker.com/products/docker-desktop/) with the Linux container engine (for local code execution)
+
+If you don't have `pnpm` installed, you can install it globally:
+
+```bash
+npm install -g pnpm
+```
+
+## Getting Started
+
+After checking the [prerequisites](#prerequisites) above, follow these steps to set up the project:
+
+1. **Clone the repository**
+
+   ```bash
+   git clone https://github.com/dulapahv/CodeX.git
+   cd CodeX
+   ```
+
+2. **Install dependencies**
+
+   This will install all dependencies for the frontend and backend applications:
+
+   ```bash
+   pnpm install
+   ```
+
+   > Note: Git hooks will be automatically installed via Husky when running `pnpm install`
+
+3. **Environment setup**
+
+    Create `apps/client/.env` using the template from `apps/client/.env.example`:
+
+    ```bash
+    PISTON_API_URL=http://localhost:2000/api/v2/execute
+    PISTON_API_KEY=
+    OLLAMA_BASE_URL=http://localhost:11434
+    OLLAMA_MODEL=qwen2.5-coder:3b
+    BETTERSTACK_API_KEY=
+    NEXT_PUBLIC_SENTRY_DSN=
+    SENTRY_AUTH_TOKEN=
+    GITHUB_CLIENT_SECRET_PROD=
+    GITHUB_CLIENT_SECRET_DEV=
+    TURBO_TEAM=
+    TURBO_TOKEN=
+    ```
+
+    > Note: This is a personal project and the required API keys and secrets are not publicly shared. For local development, you'll need to set up your own credentials for GitHub OAuth, Sentry, etc.
+
+    CodeX can use a local Ollama model for its room AI coding assistant. Install and start Ollama, then download the configured model:
+
+    ```bash
+    ollama pull qwen2.5-coder:3b
+    ```
+
+    The defaults above work when Ollama is running on the same machine as the CodeX server. For a hosted deployment, set `OLLAMA_BASE_URL` to an Ollama endpoint reachable from the server and choose a model available there with `OLLAMA_MODEL`.
+
+  4. **Start the local code execution service**
+
+    The public Piston API now requires authorization. CodeX uses a local Piston instance by default, so no public API key is needed for development:
+
+    ```bash
+    docker compose up -d piston
+    ```
+
+    Install the C++ runtime once after the service starts:
+
+    ```powershell
+    Invoke-RestMethod -Uri http://localhost:2000/api/v2/packages -Method Post -ContentType 'application/json' -Body '{"language":"gcc","version":"10.2.0"}'
+    ```
+
+    Runtime packages persist in Docker's `piston-packages` volume. To use another self-hosted instance, set `PISTON_API_URL` to its `/api/v2/execute` endpoint. `PISTON_API_KEY` is optional and only needed if that endpoint requires authentication.
+
+## Development
+
+To start the development server for both the frontend and backend applications:
+
+```bash
+pnpm dev
+```
+
+You can also start them individually:
+
+```bash
+# Start only the client
+pnpm --filter client dev
+
+# Start only the server
+pnpm --filter server dev
+```
+
+The application will be available at:
+
+- Frontend: <http://localhost:3000>
+- Backend: <http://localhost:3001>
+
+### Join from another laptop on your Wi-Fi
+
+1. On the host laptop, run `ipconfig` and note its Wi-Fi IPv4 address (for example, `192.168.1.25`).
+2. Create `apps/client/.env.local` and set the server URL to that address:
+
+  ```env
+  NEXT_PUBLIC_SERVER_URL=http://192.168.1.25:3001
+  ```
+
+  Replace the example address with the host laptop's actual IPv4 address. `.env.local` is ignored by Git.
+
+3. Restart the client and server dev processes. The client dev script listens on all network interfaces; the server listens on port `3001`.
+4. If Windows Firewall prompts, allow Node.js on **Private networks**. Do not disable the firewall; make sure both laptops are on the same Wi-Fi and that the network does not have client isolation enabled.
+5. On the other laptop, open `http://192.168.1.25:3000` using the same host address, create or join a room, then share the room ID or invite link.
+
+This is for laptops on the same local network. For people joining over the Internet, use the deployed site or set up a secured public deployment; do not expose the development ports directly to the Internet.
+
+## Test
+
+All test commands can be run from both the root directory and their respective workspaces.
+
+### Frontend Test
+
+Both the frontend server and the backend server will start automatically. To run the frontend tests:
+
+```bash
+# In root directory or client workspace
+pnpm test:client            # Run all frontend E2E tests
+pnpm test:client:ui         # Run frontend tests with UI mode
+pnpm test:client:debug      # Debug frontend tests
+pnpm test:client:report     # View frontend test report
+
+# Run in client workspace only
+pnpm --filter client test:client
+```
+
+### Backend Test
+
+The backend server will start automatically. To run the backend tests:
+
+```bash
+# In root directory or server workspace
+pnpm test:server            # Run backend tests against local server
+pnpm test:server:remote     # Run backend tests against remote server
+pnpm test:server:watch      # Run backend tests in watch mode (local server)
+
+# Run in server workspace only
+pnpm --filter server test:server
+```
+
+## Build
+
+This project is configured to build both the frontend and backend applications together with caching from Turborepo. To build the entire project:
+
+```bash
+pnpm build
+```
+
+However, you can also build them individually:
+
+```bash
+# Build frontend
+pnpm build:client
+
+# Build backend
+pnpm build:server
+```
+
+The build artifacts of the frontend will be available in the `apps/client/.next` directory, and the backend will be available in the `apps/server/dist` directory.
+
+## Deployment
+
+Deployment runs from the GitHub Actions pipeline (`.github/workflows/ci.yml`) on every push to `main`, and only after both the server and client test jobs pass:
+
+- Frontend (client): built with the [OpenNext](https://opennext.js.org/cloudflare) adapter and deployed straight to [Cloudflare Workers](https://cloudflare.com) by the workflow
+- Backend (server): deployed to [Render](https://render.com) via a Deploy Hook
+
+To deploy your own instance:
+
+1. Create a Cloudflare Workers account and a Render account. Create a Render Web Service from this repository using `pnpm install --frozen-lockfile --prod=false && pnpm build:server` as the build command and `pnpm --filter server start` as the start command. Set `CLIENT_ORIGINS` to your public client origin (for example, `https://your-app.workers.dev`).
+2. Add these GitHub repository secrets: `CLOUDFLARE_API_TOKEN`, `CLOUDFLARE_ACCOUNT_ID`, and `SERVER_DEPLOY_HOOK` (the Render service's deploy hook). `SENTRY_AUTH_TOKEN` is optional and only enables source map uploads.
+3. Add these GitHub repository variables: `NEXT_PUBLIC_CLIENT_URL` (your public Cloudflare Worker URL), `NEXT_PUBLIC_SERVER_URL` (your public Render URL, using `https://`), and `NEXT_PUBLIC_GITHUB_CLIENT_ID` if you configure GitHub integration. Register `https://<your-client-domain>/api/github/auth` as the OAuth callback URL for your GitHub OAuth app. The client uses these values when it is built.
+4. Push to `main`. The workflow runs tests, deploys the client to Cloudflare Workers, and triggers the Render server deployment.
+5. In the Cloudflare Worker settings, configure `OLLAMA_BASE_URL`, `OLLAMA_MODEL`, `PISTON_API_URL`, and (if required by your executor) `PISTON_API_KEY`. These must point to services reachable over the Internet by the Worker; `localhost` values only work on the same machine and will not work for a hosted deployment. Configure `GITHUB_CLIENT_SECRET_PROD` there if GitHub integration is enabled.
+
+The deployment build publishes a downloadable `source.tar.gz` from the app's About dialog to provide the corresponding source under the repository's AGPL-3.0 license. Keep that source offer available for users of your deployed instance.
+
+Render and Cloudflare deployments may incur charges or have free-tier limits. Do not expose local development ports directly to the Internet.
+
+## Scripts
+
+These are the available scripts in the project:
+
+```bash
+# Development
+pnpm dev                    # Start all applications in development mode
+pnpm build                  # Build all packages
+pnpm build:client           # Build frontend
+pnpm build:server           # Build backend
+pnpm clean                  # Clean all builds, caches, test results, and node_modules
+
+# Testing
+pnpm test:client            # Run frontend E2E tests (Playwright)
+pnpm test:client:ui         # Run frontend tests with UI mode
+pnpm test:client:debug      # Debug frontend tests
+pnpm test:client:report     # View frontend test report
+pnpm test:server            # Run backend tests against local server
+pnpm test:server:remote     # Run backend tests against remote server
+pnpm test:server:watch      # Run backend tests in watch mode (local server)
+
+# Linting and Formatting
+pnpm check                  # Check for linting and formatting issues
+pnpm fix                    # Fix linting and formatting issues
+```
+
+You can also run scripts in the specific workspaces
+
+> Note: This will not use Turborepo caching
+
+```bash
+# Frontend specific
+pnpm --filter client dev
+pnpm --filter client build
+pnpm --filter client test:e2e
+
+# Backend specific
+pnpm --filter server dev
+pnpm --filter server build
+pnpm --filter server test:socket
+```
+
+## Tech Stack
+
+- **Frontend:**
+  - [Next.js](https://nextjs.org)
+  - [TypeScript](https://www.typescriptlang.org)
+  - [Tailwind CSS](https://tailwindcss.com)
+  - [shadcn/ui](https://ui.shadcn.com/)
+  - [Monaco Editor](https://microsoft.github.io/monaco-editor/) (code editor)
+  - [Yjs](https://yjs.dev) (CRDT for conflict-free code synchronization)
+  - [Socket.IO Client](https://socket.io)
+  - [MDXEditor](https://mdxeditor.dev/) (notepad)
+  - [simple-peer](https://github.com/feross/simple-peer) (WebRTC)
+  - [Radix Form](https://www.radix-ui.com/primitives/docs/components/form) (form validation)
+- **Backend:**
+  - [Node.js](https://nodejs.org)
+  - [TypeScript](https://www.typescriptlang.org)
+  - [Socket.IO](https://socket.io) (binded to [µWebSockets.js](https://github.com/uNetworking/uWebSockets.js) server)
+  - [Yjs](https://yjs.dev) (per-room CRDT document that merges and relays edits)
+- **Testing:**
+  - [Playwright](https://playwright.dev) (end-to-end testing for frontend)
+  - [Jest](https://jestjs.io) (unit testing for backend)
+  - [CodeQL](https://codeql.github.com/) (security analysis)
+- **Code Quality:**
+  - [Ultracite](https://ultracite.js.org/) + [Biome](https://biomejs.dev/) (linting and formatting)
+  - [Husky](https://typicode.github.io/husky/) (git hooks)
+  - [commitlint](https://commitlint.js.org/) (commit message linting)
+- **Build & DevOps:**
+  - [Turborepo](https://turbo.build/repo/docs) (monorepo build system)
+  - [GitHub Actions](https://github.com/features/actions) (CI/CD)
+  - [Cloudflare](https://cloudflare.com) (frontend deployment)
+  - [Render](https://render.com) (backend deployment)
+- **Monitoring & Analytics:**
+  - [Sentry](https://sentry.io) (error tracking)
+  - [Cloudflare Web Analytics](https://developers.cloudflare.com/web-analytics/) (web analytics)
+  - [Better Stack](https://betterstack.com/) (uptime monitoring and status page)
+- **External Services:**
+  - [Piston](https://github.com/engineer-man/piston) (code execution)
+  - [GitHub REST API](https://docs.github.com/en/rest) (repository management)
+
+## Coding Style
+
+We use several tools to maintain code quality:
+
+- [Ultracite](https://ultracite.js.org/) + [Biome](https://biomejs.dev/) for linting and formatting
+- [Husky](https://typicode.github.io/husky/) for Git hooks
+- [lint-staged](https://github.com/okonet/lint-staged) for running checks on staged files
+- [commitlint](https://commitlint.js.org/) for commit message linting
+
+Check and fix code style:
+
+```bash
+pnpm check                  # Check for linting and formatting issues
+pnpm fix                    # Fix linting and formatting issues
+```
+
+## Contributing
+
+Contributions are welcome! To contribute to this project, follow these steps:
+
+1. Create a new branch for your feature:
+
+   ```bash
+   git checkout -b feat/your-feature-name
+    ```
+
+2. Commit your changes following **[Conventional Commits](https://conventionalcommits.org/)**:
+
+    ```bash
+    git commit -m "<type>(<optional-scope>): <description>"
+    ```
+
+    - `<type>`: Must be one of:
+
+      - `feat`: New features (e.g., "feat: add user authentication")
+      - `fix`: Bug fixes (e.g., "fix: resolve memory leak")
+      - `docs`: Documentation changes (e.g., "docs: update API guide")
+      - `style`: Code style changes (e.g., "style: fix indentation")
+      - `refactor`: Code refactoring (e.g., "refactor: simplify auth logic")
+      - `perf`: Performance improvements (e.g., "perf: optimize database queries")
+      - `test`: Adding/updating tests (e.g., "test: add unit tests for auth")
+      - `chore`: Routine tasks/maintenance (e.g., "chore: update dependencies")
+      - `ci`: CI/CD changes (e.g., "ci: add GitHub Actions workflow")
+      - `revert`: Revert previous changes (e.g., "revert: remove broken feature")
+
+    <br />
+
+    > For a complete commit message guidelines, see **[Conventional Commits](https://conventionalcommits.org/)**.
+
+3. Push your changes and submit a Pull Request with a description of your changes:
+
+    ```bash
+    git push origin feat/your-feature-name
+    ```
+
+## User Manual
+
+For detailed usage instructions and feature documentation, please refer to the **[User Manual](manual.md)**.
+
+## License
+
+Copyright (C) 2024-2026 Dulapah Vibulsanti.
+
+Licensed under the **GNU Affero General Public License v3.0** - see [LICENSE](LICENSE) for the full text.
+
+You are free to use, study, modify and share this project. In return, the AGPL asks two things:
+
+- **If you deploy a modified version as a network service**, you must offer its complete source to everyone who uses it (AGPL section 13). Running it on a server counts as distribution - this is the difference between the AGPL and the GPL.
+- **You must preserve attribution.** Under an [additional term](NOTICE) permitted by AGPL section 7(b), the per-file authorship headers must stay intact, and a network-deployed derivative must visibly credit `Based on CodeX by Dulapah Vibulsanti` in its interface.
+
+The name **CodeX**, the logo, and the author's name are **not** covered by the AGPL and may not be used to identify, endorse or promote derived works. See [NOTICE](NOTICE) for the attribution and trademark terms in full.
+
+> Versions released before this change remain available under Apache-2.0; the AGPL applies from this commit onward.

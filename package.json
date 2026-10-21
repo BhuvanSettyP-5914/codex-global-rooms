@@ -1,0 +1,44 @@
+{
+  "name": "codex",
+  "private": true,
+  "license": "AGPL-3.0-only",
+  "scripts": {
+    "dev": "turbo dev",
+    "build": "turbo build",
+    "build:client": "turbo build --filter=client...",
+    "build:server": "turbo build --filter=server...",
+    "test:client": "turbo test:e2e",
+    "test:client:ui": "turbo test:e2e:ui",
+    "test:client:debug": "turbo test:e2e:debug",
+    "test:client:report": "turbo test:e2e:report",
+    "test:server": "turbo test:socket",
+    "test:server:remote": "turbo test:socket:remote",
+    "test:server:watch": "turbo test:watch",
+    "clean": "node scripts/clean.js",
+    "prepare": "husky",
+    "check": "ultracite check",
+    "fix": "ultracite fix"
+  },
+  "devDependencies": {
+    "@biomejs/biome": "2.4.5",
+    "@commitlint/cli": "^19.8.1",
+    "@commitlint/config-conventional": "^19.8.1",
+    "@types/simple-peer": "^9.11.9",
+    "husky": "^9.1.7",
+    "lint-staged": "^15.5.2",
+    "rimraf": "^6.1.3",
+    "turbo": "^2.10.7",
+    "typescript": "^5.9.3",
+    "ultracite": "7.2.5"
+  },
+  "optionalDependencies": {
+    "bufferutil": "^4.1.0",
+    "utf-8-validate": "^6.0.6"
+  },
+  "packageManager": "pnpm@9.15.9+sha512.68046141893c66fad01c079231128e9afb89ef87e2691d69e4d40eee228988295fd4682181bae55b58418c3a253bde65a505ec7c5f9403ece5cc3cd37dcf2531",
+  "pnpm": {
+    "patchedDependencies": {
+      "monaco-themes": "patches/monaco-themes.patch"
+    }
+  }
+}
