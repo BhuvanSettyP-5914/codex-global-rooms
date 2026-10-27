@@ -5,12 +5,7 @@
   "compatibility_date": "2026-08-01",
   "compatibility_flags": ["nodejs_compat", "global_fetch_strictly_public"],
   "keep_names": false,
-  "routes": [
-    {
-      "pattern": "codex.dulapahv.dev",
-      "custom_domain": true
-    }
-  ],
+
   "vars": {
     // Workaround for opennextjs/opennextjs-cloudflare#1232 (open).
     // https://github.com/opennextjs/opennextjs-cloudflare/issues/1232
